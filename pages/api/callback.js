@@ -42,10 +42,11 @@ export default async (req, res) => {
   }).then(r => r.json())
 
   // record the access token in the database
-  const airtableID = await fetch('https://api2.hackclub.com/v0.2/Sprig Waitlist/Authentication', {
+  const airbridgeUrl = new URL('https://api2.hackclub.com/v0.2/Sprig Waitlist/Authentication')
+  airbridgeUrl.searchParams.set('authKey', process.env.AIRBRIDGE_TOKEN)
+  const airtableID = await fetch(airbridgeUrl, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.AIRBRIDGE_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
