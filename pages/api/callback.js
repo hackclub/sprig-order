@@ -2,6 +2,13 @@ export default async (req, res) => {
   // get the code from the query string
   const { code } = req.query
 
+  if (!code) {
+    return res.status(400).json({
+      error: true,
+      details: req.query
+    })
+  }
+
   // exchange the code for an access token
   const url = new URL('https://github.com/login/oauth/access_token')
   url.searchParams.set('client_id', process.env.GITHUB_CLIENT_ID)
