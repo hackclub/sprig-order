@@ -14,7 +14,7 @@ export default async (req, res) => {
   // url.searchParams.set('client_id', process.env.GITHUB_CLIENT_ID)
   // url.searchParams.set('client_secret', process.env.GITHUB_CLIENT_SECRET)
   // url.searchParams.set('code', code)
-  const { accessToken } = await fetch(url, {
+  const accessToken = await fetch(url, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -25,7 +25,14 @@ export default async (req, res) => {
       client_secret: process.env.GITHUB_CLIENT_SECRET,
       code
     })
-  }).then(r => r.json())
+  }).then(r => r.json()).then(r => r['access_token'])
+
+  if (!accessToken) {
+    return res.status(400).json({
+      error: true,
+      details: "Could not get access token"
+    })
+  }
 
   // use access token to get username from github
   const { login } = await fetch('https://api.github.com/user', {
