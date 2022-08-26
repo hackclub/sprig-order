@@ -11,19 +11,28 @@ export default async (req, res) => {
 
   // exchange the code for an access token
   const url = new URL('https://github.com/login/oauth/access_token')
-  url.searchParams.set('client_id', process.env.GITHUB_CLIENT_ID)
-  url.searchParams.set('client_secret', process.env.GITHUB_CLIENT_SECRET)
-  url.searchParams.set('code', code)
+  // url.searchParams.set('client_id', process.env.GITHUB_CLIENT_ID)
+  // url.searchParams.set('client_secret', process.env.GITHUB_CLIENT_SECRET)
+  // url.searchParams.set('code', code)
   const { accessToken } = await fetch(url, {
     method: 'POST',
-  })
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code
+    })
+  }).then(r => r.json())
 
   // use access token to get username from github
   const { login } = await fetch('https://api.github.com/user', {
     headers: {
       Authorization: `token ${accessToken}`,
     }
-  })
+  }).then(r => r.json())
 
   // record the access token in the database
   const airtableID = await fetch('https://api2.hackclub.com/v0.2/Sprig Waitlist/Authentication', {
