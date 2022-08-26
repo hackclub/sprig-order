@@ -58,6 +58,9 @@ export default async (req, res) => {
   const formUrl = new URL('https://airtable.com/shrePmF41sbxEXqkZ')
   formUrl.searchParams.set('prefill_GitHub Username', login)
   formUrl.searchParams.set('prefill_Authentication ID', airtableID)
+  if (req.query.pr) {
+    formUrl.searchParams.set('prefill_Pull Request', req.query.pr)
+  }
 
   res.redirect(302, formUrl.toString())
 }
