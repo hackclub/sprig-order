@@ -56,11 +56,11 @@ export default async (req, res) => {
   }).then(r => r.json()).then(r => r.id)
 
   // redirect the user to the submission form
-  const formUrl = new URL('https://airtable.com/shrePmF41sbxEXqkZ')
-  formUrl.searchParams.set('prefill_GitHub Username', login)
-  formUrl.searchParams.set('prefill_Authentication ID', airtableID)
+  const formUrl = new URL('https://forms.hackclub.com/t/kJLdGnDbtUus')
+  formUrl.searchParams.set('g', login)
+  formUrl.searchParams.set('s', airtableID)
   if (req.query.pr) {
-    formUrl.searchParams.set('prefill_Pull Request', req.query.pr)
+    formUrl.searchParams.set('p', req.query.pr)
   }
 
   res.redirect(302, formUrl.toString())
