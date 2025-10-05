@@ -1,3 +1,26 @@
+const decodeState = (state) => {
+  if (!state) return {}
+
+  const toBase64 = (input) => {
+    let normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+    const paddingNeeded = (4 - (normalized.length % 4)) % 4;
+    return normalized.padEnd(normalized.length + paddingNeeded, '=');
+  }
+
+  try {
+    const decoded = Buffer.from(toBase64(state), 'base64').toString('utf8')
+    const parsed = JSON.parse(decoded)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch (err) {
+    try {
+      const parsed = JSON.parse(state)
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    } catch (jsonErr) {
+      return { pr: state }
+    }
+  }
+}
+
 export default async (req, res) => {
   // get the code from the query string
   const { code } = req.query
@@ -55,12 +78,31 @@ export default async (req, res) => {
     })
   }).then(r => r.json()).then(r => r.id)
 
+  const preservedParams = decodeState(req.query.state)
+  const queryParams = (preservedParams && typeof preservedParams === 'object' && !Array.isArray(preservedParams)) ? preservedParams : {}
+
   // redirect the user to the submission form
   const formUrl = new URL('https://forms.hackclub.com/t/kJLdGnDbtUus')
   formUrl.searchParams.set('g', login)
   formUrl.searchParams.set('s', airtableID)
-  if (req.query.pr) {
-    formUrl.searchParams.set('p', req.query.pr)
+  const preservedPr = queryParams.pr || queryParams.p || req.query.pr
+  if (preservedPr) {
+    formUrl.searchParams.set('p', preservedPr)
+  }
+
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (value === undefined || value === null) continue
+    if (['pr', 'p', 'code', 'state'].includes(key)) continue
+
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (entry !== undefined && entry !== null) {
+          formUrl.searchParams.append(key, entry)
+        }
+      })
+    } else {
+      formUrl.searchParams.set(key, value)
+    }
   }
 
   res.redirect(302, formUrl.toString())
